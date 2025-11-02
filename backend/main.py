@@ -5,6 +5,9 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 import os
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"  # avoid webcam issues on headless servers
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 
 app = FastAPI()
 
@@ -68,3 +71,4 @@ async def detect(file: UploadFile = File(...)):
         })
 
     return JSONResponse({"detections": detections})
+
