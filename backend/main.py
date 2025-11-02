@@ -83,11 +83,51 @@ def video_feed():
 @app.get("/")
 def index():
     return HTMLResponse("""
-        <html><head><title>YOLOv8 Live Camera</title></head>
-        <body><h1>YOLOv8 Live Camera Feed</h1>
-        <img src="/video" width="640" height="480"></body></html>
+    <html>
+    <head><title>AI Navigation Assistant</title></head>
+    <body>
+        <h1>AI Navigation Assistant</h1>
+        <video id="video" autoplay playsinline width="640" height="480"></video>
+        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+        <img id="result" width="640" height="480" />
+        <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const result = document.getElementById('result');
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } } // back camera
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.log("Back camera not found, switching to front.");
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            }
+        }
+
+        async function sendFrame() {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
+            const formData = new FormData();
+            formData.append("file", blob, "frame.jpg");
+
+            const response = await fetch("/detect/", { method: "POST", body: formData });
+            const blobResponse = await response.blob();
+            result.src = URL.createObjectURL(blobResponse);
+        }
+
+        setInterval(sendFrame, 1000); // every 1 second
+        initCamera();
+        </script>
+    </body>
+    </html>
     """)
 
 @app.on_event("shutdown")
 def shutdown():
     cap.release(); cv2.destroyAllWindows(); speech_queue.put(None)
+
