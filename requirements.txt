@@ -1,0 +1,8 @@
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+ultralytics==8.0.160  # or your installed ultralytics version
+opencv-python-headless==4.8.0.74
+numpy==1.26.0
+pythoncom
+pywin32
+Pillow
